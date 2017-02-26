@@ -1,5 +1,6 @@
 package com.example.chongshao.imagebeacondemoclient;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -25,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
             // Handle initialization error
         }
     }
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,12 +38,19 @@ public class MainActivity extends AppCompatActivity {
         imageView.setImageResource(R.drawable.images);
         String csvText = this.readFromCSV("foo");
         Mat m = this.csvTextToMat(csvText, 64, 64);
+        Mat img = this.imageFromDCTMat(m, 64, 64);
+        Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+        Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
+        Utils.matToBitmap(img, bmp);
+        imageView.setImageBitmap(bmp);
     }
 
-    public Mat imageFromDCTMat(Mat dctMat) {
-        Mat img = new Mat();
+    public Mat imageFromDCTMat(Mat dctMat, int w, int h) {
+        Mat img = new Mat(w, h, CvType.CV_8UC1);
         Core.idct(dctMat, img);
-        return img;
+        Mat img2=  new Mat();
+        img.convertTo(img2, CvType.CV_8UC1);
+        return img2;
     }
 
     public String readFromCSV(String filename) {
