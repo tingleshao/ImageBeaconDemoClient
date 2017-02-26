@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
 
+
+// TODO: decode a sample JPEG image
 public class MainActivity extends AppCompatActivity {
 
     @Override
