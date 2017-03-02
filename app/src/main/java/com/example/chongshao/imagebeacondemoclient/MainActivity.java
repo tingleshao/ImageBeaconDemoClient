@@ -1,5 +1,6 @@
 package com.example.chongshao.imagebeacondemoclient;
 
+import android.bluetooth.le.BluetoothLeScanner;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
@@ -19,14 +20,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BluetoothAdapter.LeScanCallback {
 
     static {
         if (!OpenCVLoader.initDebug()) {
             // Handle initialization error
         }
     }
+
+    private DeviceAdapter mDeviceAdapter;
+    private boolean mIsScanning;
+    private BluetoothAdapter mBTAdapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
         Utils.matToBitmap(img, bmp);
         imageView.setImageBitmap(bmp);
+
+        init();
     }
 
     public Mat imageFromDCTMat(Mat dctMat, int w, int h) {
@@ -91,5 +114,63 @@ public class MainActivity extends AppCompatActivity {
         Log.d("DDL:", m.dump());
         Log.d("DDL:", Float.toString((float)m.get(63, 0)[0]));
         return m;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopScan();
+    }
+
+    private void init() {
+        if (!BleUtil.isBLESupported(this)) {
+      //      Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+            Log.d("DDDL:", "BLE not supported");
+            finish();
+            return;
+        }
+
+        // BT check
+        BluetoothManager manager = BleUtil.getManager(this);
+        if (manager != null) {
+            mBTAdapter = manager.getAdapter();
+        }
+        if (mBTAdapter == null) {
+         //   Toast.makeText(this, R.string.bt_unavailable, Toast.LENGTH_SHORT).show();
+            Log.d("DDDL:", "BT unavailable");
+            finish();
+            return;
+        }
+
+    }
+
+    private void startScan() {
+        if ((mBTAdapter != null) && (!mIsScanning)) {
+            mBTAdapter.startLeScan(this);
+            mIsScanning = true;
+            setProgressBarIndeterminateVisibility(true);
+            invalidateOptionsMenu();
+        }
+    }
+
+    private void stopScan() {
+        if (mBTAdapter != null) {
+            mBTAdapter.stopLeScan(this);
+        }
+        mIsScanning = false;
+        setProgressBarIndeterminateVisibility(false);
+        invalidateOptionsMenu();
+    }
+
+    // scanning methods
+    @Override
+    public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//               mDeviceAdapter.update(device, rssi, scanRecord);
+//            }
+//        });
+        Log.d("Ddl:", device.toString() + Integer.toString(rssi));
     }
 }
