@@ -137,8 +137,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         if (!BleUtil.isBLESupported(this)) {
       //      Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             Log.d("DDDL:", "BLE not supported");
-            finish();
-            return;
+      //      finish();
+     //       return;
         }
 
         // BT check
@@ -149,8 +149,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         if (mBTAdapter == null) {
          //   Toast.makeText(this, R.string.bt_unavailable, Toast.LENGTH_SHORT).show();
             Log.d("DDDL:", "BT unavailable");
-            finish();
-            return;
+    //        finish();
+     //       return;
         }
     }
 
