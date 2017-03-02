@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import org.opencv.android.OpenCVLoader;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private DeviceAdapter mDeviceAdapter;
     private boolean mIsScanning;
     private BluetoothAdapter mBTAdapter;
-
+    private Button scanButton;
 
 
     @Override
@@ -64,6 +65,16 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
         Utils.matToBitmap(img, bmp);
         imageView.setImageBitmap(bmp);
+
+        scanButton = (Button)this.findViewById(R.id.scanButton);
+        scanButton.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Log.d("DDL", "scan button clicked");
+                startScan();
+            }
+        });
 
         init();
     }
@@ -141,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             finish();
             return;
         }
-
     }
 
     private void startScan() {
