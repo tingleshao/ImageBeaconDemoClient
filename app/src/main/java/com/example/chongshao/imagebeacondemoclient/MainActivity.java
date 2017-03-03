@@ -1,8 +1,13 @@
 package com.example.chongshao.imagebeacondemoclient;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.bluetooth.le.BluetoothLeScanner;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,16 +53,49 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private boolean mIsScanning;
     private BluetoothAdapter mBTAdapter;
     private Button scanButton;
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ask permissions
+        if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("This app needs location access");
+            builder.setMessage("Please grant location access so this app can detect beacons.");
+            builder.setPositiveButton("OK", null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                }
+            });
+            builder.show();
+        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            // Android M permission check
+//            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                final AlertDialog.Builder builder = new AlertDialog.Builder(this); 
+//                builder.setTitle("This app needs location access");
+//                builder.setMessage("Please grant location access so this app can detect beacons.");
+//                builder.setPositiveButton(android.R.string.ok, null); 
+//                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {  
+//                    @Override 
+//                    public void onDismiss(DialogInterface dialog) {
+//                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION); 
+//                    }  
+//                }); 
+//                builder.show(); 
+//            }
+//        }
+
         setContentView(R.layout.activity_main);
 
         ImageView imageView = (ImageView)this.findViewById(R.id.imageView);
 
-        imageView.setImageResource(R.drawable.images);
+        //imageView.setImageResource(R.drawable.images);
         String csvText = this.readFromCSV("foo");
         Mat m = this.csvTextToMat(csvText, 64, 64);
         Mat img = this.imageFromDCTMat(m, 64, 64);
@@ -181,6 +219,47 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 //               mDeviceAdapter.update(device, rssi, scanRecord);
 //            }
 //        });
-        Log.d("Ddl:", device.toString() + Integer.toString(rssi));
+        Log.d("Ddl:", ByteArrayToString(scanRecord) + Integer.toString(rssi));
+    }
+
+
+
+    public static String ByteArrayToString(byte[] ba)
+    {
+//        StringBuilder hex = new StringBuilder(ba.length * 2);
+//        for (byte b : ba)
+//            hex.append(b + " ");
+//
+//        return hex.toString();
+        String msg = "payload = ";
+        for (byte b : ba)
+            msg += String.format("%02x ", b);
+
+         return msg;
+    }
+
+
+    // permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("DDL", "coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("SInce location access has not been granted,this app will not be able to discover beacons when in the background;");
+                    builder.setPositiveButton("OK", null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+                    });
+                    builder.show();
+                }
+                return;
+            }
+        }
     }
 }
