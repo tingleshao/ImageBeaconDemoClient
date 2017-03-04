@@ -19,6 +19,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 
 import java.io.BufferedReader;
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
         setContentView(R.layout.activity_main);
 
-        ImageView imageView = (ImageView)this.findViewById(R.id.imageView);
+        final ImageView imageView = (ImageView)this.findViewById(R.id.imageView);
 
         //imageView.setImageResource(R.drawable.images);
         String csvText = this.readFromCSV("foo");
@@ -119,11 +120,20 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         });
 
         testButton = (Button)this.findViewById(R.id.testButton);
+     //   Mat res;
         testButton.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("DDL", "test button clicked");
-                decodeByteArray();
+                Mat res = decodeByteArray();
+                Log.d("DDL", "res: " + res.dump());
+
+                Mat img = imageFromDCTMat(res, 64, 64);
+                Log.d("DDL", "bitmap:" + img.dump());
+                Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+                Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
+                Utils.matToBitmap(img, bmp);
+                imageView.setImageBitmap(bmp);
             }
         });
 
@@ -133,6 +143,11 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     public Mat imageFromDCTMat(Mat dctMat, int w, int h) {
         Mat img = new Mat(w, h, CvType.CV_8UC1);
         Core.idct(dctMat, img);
+       // img = 255 * img;
+        Scalar alpha = new Scalar(255); // the factor
+        Core.multiply(img,alpha,img);
+        Log.d("DDL", "img1" + img.dump());
+      //  img *= 255;
         Mat img2=  new Mat();
         img.convertTo(img2, CvType.CV_8UC1);
         return img2;
@@ -278,46 +293,67 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     }
 
     // decoding
-    public void decodeByteArray() {
+    public Mat decodeByteArray() {
+        byte[] result = new byte[4096];
+
         try {
             // Encode a String into bytes
-            String inputString = "x\\x9c\\xed\\x93\\xd9N\\xc30\\x10Eg\\xb1\\x93\\xb6,\\x12\\x9b\\xe0K\\xf8\\xff\\xbf\\xe1\\t\\xa9T\\x14R/3\\x8c\\xdbJ-\\xf0P;E\\xe2%G\\x91\\x95\\x87\\\\\\xdf;K\\x9e_\\xc2\\xe3\\xc3Z\\x16i\\xbd|}\\x8fC\\x02b\\xd7\\xb9\\xf2\\xa0\\xa4(p\\x8a\\x9b\\xbb\\xb7\\x18{\\x8e\\x17\\xb4`\\x10 EH\\n\\xc8D\\x08tRm\\xf4\\xab\\xfb\\xd5\\x13$G\\x91\\xbb`'\\xa0 \\x05\\x91p\\xda\\xbb\\x90\\xd2\\xed\\x8a\\xe7\\xcb\\x19\\x0c\\x0e\\xc8\\x9b\\xc6lQA\\x19\\xd8\\xd5\\xe8\\xa3\\xf7\\x1eXis\\ry\\x16\\xbado\\xbd\\x00\\xe7\\x0cu\\xfe \\x97\\xf8\\x91gWC\\xf7\\xe93\\x11\\xd8\\x01\\xd6\\x03!\\xad\\x93\\xf7\\xb1K\\x19\\xe6\\x83\\xcb\\xda\\rV:PR\\xc9u\\xda\\xc2,d\\xaf\\xec6\\x82V?G\\x04u\\xd6\\xc1\\xba\\xd6\\x17JV\\x96$\\x9d8\\xd9\\xf8\\xcc\\xd1\\x82S\\x83?fs\\x0c\\xd6\\xf3\\x80\\xc9\\x81\\x82U`\\xe3\\xaf\\xd7\\x8b\\x99q`\\xce\\x89\\xadq\\xb9\\\\\\xa1\\rr\\xc8\\xc8\\xd1F\\xa5e\\xe6\\x9a<\\xa4\\xe2\\xdf\\x84}NVE\\xd1\\x91\\n`\\xd5\\xda\\x1c\\xc9\\x85M*d\\x95\\x97VbKx\\xc3o\\xd7L\\x95\\xf7\\t*\\xb7\\xee`O\\xdbn\\xe3\\xee\\x92F\\xf3\\xed\\x05(\\x16\\xdef\\x86X\\xbd\\xf3G\\x14G\\x82\\xed\\xb6g?\\xc2\\x1e!\\xef\\xc27\\xcfmGi\\xd9\\x08\\xdb\\xefW\\xec\\x93\\x8cad\\xec\\x83\\xfe<\\xb9\\xf5\\rGL\\xedH\\xdf\\xf4\\xb7\\xfd\\xc6\\xd4\\xad+\\xff3\\xc1\\x99\\xea3\\xa7\\xff7\\xcb\\xf3_\\xf6\\x13\\x13\\x13\\x13\\x13\\x13\\x13\\x13\\xcd|\\x01+8\\xa8a";
-            byte[] input = inputString.getBytes("US-ASCII");
-       //     ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-       //     short num = wrapped.getShort(); // 1
+            //  String inputString = "x\\x9c\\xed\\x93\\xd9N\\xc30\\x10Eg\\xb1\\x93\\xb6,\\x12\\x9b\\xe0K\\xf8\\xff\\xbf\\xe1\\t\\xa9T\\x14R/3\\x8c\\xdbJ-\\xf0P;E\\xe2%G\\x91\\x95\\x87\\\\\\xdf;K\\x9e_\\xc2\\xe3\\xc3Z\\x16i\\xbd|}\\x8fC\\x02b\\xd7\\xb9\\xf2\\xa0\\xa4(p\\x8a\\x9b\\xbb\\xb7\\x18{\\x8e\\x17\\xb4`\\x10 EH\\n\\xc8D\\x08tRm\\xf4\\xab\\xfb\\xd5\\x13$G\\x91\\xbb`'\\xa0 \\x05\\x91p\\xda\\xbb\\x90\\xd2\\xed\\x8a\\xe7\\xcb\\x19\\x0c\\x0e\\xc8\\x9b\\xc6lQA\\x19\\xd8\\xd5\\xe8\\xa3\\xf7\\x1eXis\\ry\\x16\\xbado\\xbd\\x00\\xe7\\x0cu\\xfe \\x97\\xf8\\x91gWC\\xf7\\xe93\\x11\\xd8\\x01\\xd6\\x03!\\xad\\x93\\xf7\\xb1K\\x19\\xe6\\x83\\xcb\\xda\\rV:PR\\xc9u\\xda\\xc2,d\\xaf\\xec6\\x82V?G\\x04u\\xd6\\xc1\\xba\\xd6\\x17JV\\x96$\\x9d8\\xd9\\xf8\\xcc\\xd1\\x82S\\x83?fs\\x0c\\xd6\\xf3\\x80\\xc9\\x81\\x82U`\\xe3\\xaf\\xd7\\x8b\\x99q`\\xce\\x89\\xadq\\xb9\\\\\\xa1\\rr\\xc8\\xc8\\xd1F\\xa5e\\xe6\\x9a<\\xa4\\xe2\\xdf\\x84}NVE\\xd1\\x91\\n`\\xd5\\xda\\x1c\\xc9\\x85M*d\\x95\\x97VbKx\\xc3o\\xd7L\\x95\\xf7\\t*\\xb7\\xee`O\\xdbn\\xe3\\xee\\x92F\\xf3\\xed\\x05(\\x16\\xdef\\x86X\\xbd\\xf3G\\x14G\\x82\\xed\\xb6g?\\xc2\\x1e!\\xef\\xc27\\xcfmGi\\xd9\\x08\\xdb\\xefW\\xec\\x93\\x8cad\\xec\\x83\\xfe<\\xb9\\xf5\\rGL\\xedH\\xdf\\xf4\\xb7\\xfd\\xc6\\xd4\\xad+\\xff3\\xc1\\x99\\xea3\\xa7\\xff7\\xcb\\xf3_\\xf6\\x13\\x13\\x13\\x13\\x13\\x13\\x13\\x13\\xcd|\\x01+8\\xa8a";
+            String inputString = "120 156 237 147 217 78 195 48 16 69 103 177 147 182 44 18 155 224 75 248 255 191 225 9 169 84 20 82 47 51 140 219 74 45 240 80 59 69 226 37 71 145 149 135 92 223 59 75 158 95 194 227 195 90 22 105 189 124 125 143 67 2 98 215 185 242 160 164 40 112 138 155 187 183 24 123 142 23 180 96 16 32 69 72 10 200 68 8 116 82 109 244 171 251 213 19 36 71 145 187 96 39 160 32 5 145 112 218 187 144 210 237 138 231 203 25 12 14 200 155 198 108 81 65 25 216 213 232 163 247 30 88 105 115 13 121 22 186 100 111 189 0 231 12 117 254 32 151 248 145 103 87 67 247 233 51 17 216 1 214 3 33 173 147 247 177 75 25 230 131 203 218 13 86 58 80 82 201 117 218 194 44 100 175 236 54 130 86 63 71 4 117 214 193 186 214 23 74 86 150 36 157 56 217 248 204 209 130 83 131 63 102 115 12 214 243 128 201 129 130 85 96 227 175 215 139 153 113 96 206 137 173 113 185 92 161 13 114 200 200 209 70 165 101 230 154 60 164 226 223 132 125 78 86 69 209 145 10 96 213 218 28 201 133 77 42 100 149 151 86 98 75 120 195 111 215 76 149 247 9 42 183 238 96 79 219 110 227 238 146 70 243 237 5 40 22 222 102 134 88 189 243 71 20 71 130 237 182 103 63 194 30 33 239 194 55 207 109 71 105 217 8 219 239 87 236 147 140 97 100 236 131 254 60 185 245 13 71 76 237 72 223 244 183 253 198 212 173 43 255 51 193 153 234 51 167 255 55 203 243 95 246 19 19 19 19 19 19 19 19 205 124 1 43 56 168 97";
+            String[] inputStirngArray = inputString.split(" ");
+            byte[] input = new byte[inputStirngArray.length];
+            for (int i = 0; i < inputStirngArray.length; i++) {
+                input[i] = (byte) ((int) Integer.valueOf(inputStirngArray[i]));
 
-            for (int i = 0; i < input.length; i++) {
-
-             //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-             //   short num = wrapped.getShort(); // 1
-                Log.d("ddl", String.valueOf((int)input[i]));
             }
+            //Log.d("DDL", input.toString());
+            //     byte[] input = inputString.getBytes("US-ASCII");
+            //     ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
+            //     short num = wrapped.getShort(); // 1
+
+      ///      for (int i = 0; i < input.length; i++) {
+
+                //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
+                //   short num = wrapped.getShort(); // 1
+         //       Log.d("ddl", String.valueOf((int) (input[i] & 0xff)));
+      //      }
+            Log.d("ddl", "length" + String.valueOf(input.length));
             // Compress the bytes
-       //     byte[] output = new byte[100];
-       //     Deflater compresser = new Deflater();
-       //     compresser.setInput(input);
-       //     compresser.finish();
-       //     int compressedDataLength = compresser.deflate(output);
-       //     compresser.end();
+            //     byte[] output = new byte[100];
+            //     Deflater compresser = new Deflater();
+            //     compresser.setInput(input);
+            //     compresser.finish();
+            //     int compressedDataLength = compresser.deflate(output);
+            //     compresser.end();
 
             // Decompress the bytes
             Inflater decompresser = new Inflater();
-            decompresser.setInput(input, 0, 388);
-            byte[] result = new byte[4096];
+            decompresser.setInput(input);
             int resultLength = decompresser.inflate(result);
             decompresser.end();
 
             // Decode the bytes into a String
-        //    String outputString = new String(result, 0, resultLength, "UTF-8");
-            Log.d("DDL", result.toString());
-        } catch(java.io.UnsupportedEncodingException ex) {
-            Log.d("DDL", "Some problem1");
+            //    String outputString = new String(result, 0, resultLength, "UTF-8");
+        //    for (int i = 0; i < result.length; i++) {
+
+                //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
+                //   short num = wrapped.getShort(); // 1
+     //           Log.d("DDL", String.valueOf((int) (result[i] & 0xff)));
+      //      }
+            //  } catch(java.io.UnsupportedEncodingException ex) {
+            //      Log.d("DDL", "Some problem1");
 
         } catch (java.util.zip.DataFormatException ex) {
             // handle
             Log.d("DDL", "Some problem2");
-
         }
 
+        Mat res = new Mat(64, 64, CvType.CV_64FC1);
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 64; j++) {
+                res.put(i, j, Float.valueOf((result[i * 64 + j])) / 10.0);
+            }
+        }
+        return res;
     }
 }
