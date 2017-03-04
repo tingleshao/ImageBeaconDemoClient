@@ -28,4 +28,14 @@
         android:layout_alignEnd="@+id/imageView"
         android:layout_marginTop="40dp"
         android:id="@+id/scanButton" />
+
+    <Button
+        android:text="Test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/scanButton"
+        android:layout_alignEnd="@+id/scanButton"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="45dp"
+        android:id="@+id/testButton" />
 </RelativeLayout>
