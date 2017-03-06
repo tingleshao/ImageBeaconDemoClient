@@ -11,31 +11,43 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.chongshao.imagebeacondemoclient.MainActivity">
 
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        app:srcCompat="@android:color/black"
-        android:layout_marginTop="128dp"
-        android:id="@+id/imageView"
-        android:layout_marginLeft="128dp" />
-
-    <Button
-        android:text="Scan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView"
-        android:layout_alignRight="@+id/imageView"
-        android:layout_alignEnd="@+id/imageView"
-        android:layout_marginTop="40dp"
-        android:id="@+id/scanButton" />
-
     <Button
         android:text="Test"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="45dp"
+        android:id="@+id/testButton"
         android:layout_below="@+id/scanButton"
         android:layout_alignEnd="@+id/scanButton"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="45dp"
-        android:id="@+id/testButton" />
+        android:layout_alignStart="@+id/scanButton" />
+
+    <Button
+        android:text="Scan Gray"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp"
+        android:id="@+id/scanButton"
+        android:layout_marginStart="43dp"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Scan Color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scanButtonColor"
+        android:layout_alignBaseline="@+id/scanButton"
+        android:layout_alignBottom="@+id/scanButton"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="35dp" />
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:srcCompat="@android:color/black"
+        android:layout_marginTop="106dp"
+        android:id="@+id/imageView"
+        android:layout_marginLeft="128dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

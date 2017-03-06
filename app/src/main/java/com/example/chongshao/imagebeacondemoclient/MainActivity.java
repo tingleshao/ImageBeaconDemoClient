@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private BluetoothAdapter mBTAdapter;
     private Button scanButton;
     private Button testButton;
+    private Button scanButtonColor;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private HashMap<Integer, String> inputData;
     private boolean doneGettingData;
@@ -117,8 +119,17 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         scanButton.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO Auto-generated method stub
                 Log.d("DDL", "scan button clicked");
+                startScan();
+            }
+        });
+
+        scanButtonColor = (Button)this.findViewById(R.id.scanButtonColor);
+        scanButtonColor.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("DDL", "color scan button clicked!");
+                // TODO: add a flag indicating color scan or gray scan
                 startScan();
             }
         });
@@ -256,9 +267,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 //               mDeviceAdapter.update(device, rssi, scanRecord);
 //            }
 //        });
-        if (rssi > -60) {
+        if (rssi > -60 && device.getName() == null) {
             String scanRecordString = ByteArrayToString(scanRecord);
-            Log.d("Ddl:", scanRecordString + Integer.toString(rssi));
+            Log.d("Ddl:", scanRecordString + Integer.toString(rssi) + "name:" +device.getName());
             retrieveByteArray(scanRecordString.split(" = ")[1]);
             if (doneGettingData) {
                 String resultString = getInputStringFromHashMap();
@@ -275,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             }
         }
     }
-    
+
     public static String ByteArrayToString(byte[] ba)
     {
 //        StringBuilder hex = new StringBuilder(ba.length * 2);
@@ -316,20 +327,32 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
     public void retrieveByteArray(String byteArray) {
         String[] bytes = byteArray.split(" ");
-        int currIndex = Byte.valueOf(bytes[0]) & 0xff;
-        if (inputData.containsKey(new Integer(currIndex))) {
-            doneGettingData = true;
-        }
+        int currIndex = (int)((byte)(Byte.valueOf(bytes[9], 16)) & 0xff);
         if (currIndex > maxSize) {
             maxSize = currIndex;
         }
-        inputData.put(new Integer(currIndex), byteArray.substring(3));
+        if (inputData.containsKey(new Integer(currIndex))) {
+            if (containsAll()) {
+                doneGettingData = true;
+            }
+        }
+        inputData.put(new Integer(currIndex), byteArray.substring(30,90));
+    }
+
+    private boolean containsAll() {
+        Set<Integer> keySet = inputData.keySet();
+        for (int i = 1; i <= maxSize; i++) {
+            if (! keySet.contains(new Integer(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public String getInputStringFromHashMap() {
         String resultString = "";
         for (int i = 1; i <= maxSize; i++) {
-            String currString = inputData.get(new Integer(i)).trim();
+            String currString = inputData.get(new Integer(i));
             resultString += currString;
         }
         return resultString;
@@ -410,9 +433,11 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             String[] inputStirngArray = inputString.split(" ");
             byte[] input = new byte[inputStirngArray.length];
             for (int i = 0; i < inputStirngArray.length; i++) {
-                input[i] = (byte) ((int) Integer.valueOf(inputStirngArray[i]));
+                Log.d("DDL", "curr byte: " + inputStirngArray[i] + " len " + inputStirngArray[i].length());
+                input[i] = (byte) ((int) Integer.valueOf(Integer.parseInt(inputStirngArray[i],16)));
 
             }
+
             //Log.d("DDL", input.toString());
             //     byte[] input = inputString.getBytes("US-ASCII");
             //     ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
