@@ -402,13 +402,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         packetCount = 0;
         inputData = new HashMap<>();
     }
-    public static String ByteArrayToString(byte[] ba)
-    {
-//        StringBuilder hex = new StringBuilder(ba.length * 2);
-//        for (byte b : ba)
-//            hex.append(b + " ");
-//
-//        return hex.toString();
+    public static String ByteArrayToString(byte[] ba) {
         String msg = "payload = ";
         for (byte b : ba)
             msg += String.format("%02x ", b);
@@ -495,17 +489,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
                 input[i] = (byte) ((int) Integer.valueOf(inputStirngArray[i]));
 
             }
-            //Log.d("DDL", input.toString());
-            //     byte[] input = inputString.getBytes("US-ASCII");
-            //     ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //     short num = wrapped.getShort(); // 1
-
-            ///      for (int i = 0; i < input.length; i++) {
-
-            //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //   short num = wrapped.getShort(); // 1
-            //       Log.d("ddl", String.valueOf((int) (input[i] & 0xff)));
-            //      }
             Log.d("ddl", "length" + String.valueOf(input.length));
             // Compress the bytes
             //     byte[] output = new byte[100];
@@ -520,17 +503,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             decompresser.setInput(input);
             int resultLength = decompresser.inflate(result);
             decompresser.end();
-
-            // Decode the bytes into a String
-            //    String outputString = new String(result, 0, resultLength, "UTF-8");
-            //    for (int i = 0; i < result.length; i++) {
-
-            //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //   short num = wrapped.getShort(); // 1
-            //           Log.d("DDL", String.valueOf((int) (result[i] & 0xff)));
-            //      }
-            //  } catch(java.io.UnsupportedEncodingException ex) {
-            //      Log.d("DDL", "Some problem1");
 
         } catch (java.util.zip.DataFormatException ex) {
             // handle
@@ -566,43 +538,14 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
             }
 
-            //Log.d("DDL", input.toString());
-            //     byte[] input = inputString.getBytes("US-ASCII");
-            //     ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //     short num = wrapped.getShort(); // 1
-
-            ///      for (int i = 0; i < input.length; i++) {
-
-            //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //   short num = wrapped.getShort(); // 1
-            //       Log.d("ddl", String.valueOf((int) (input[i] & 0xff)));
-            //      }
             Log.d("ddl", "length" + String.valueOf(input.length));
-            // Compress the bytes
-            //     byte[] output = new byte[100];
-            //     Deflater compresser = new Deflater();
-            //     compresser.setInput(input);
-            //     compresser.finish();
-            //     int compressedDataLength = compresser.deflate(output);
-            //     compresser.end();
 
             // Decompress the bytes
             Inflater decompresser = new Inflater();
             decompresser.setInput(input);
             int resultLength = decompresser.inflate(result);
             decompresser.end();
-
-            // Decode the bytes into a String
-            //    String outputString = new String(result, 0, resultLength, "UTF-8");
-            //    for (int i = 0; i < result.length; i++) {
-
-            //   ByteBuffer wrapped = ByteBuffer.wrap(input[i]); // big-endian by default
-            //   short num = wrapped.getShort(); // 1
-            //           Log.d("DDL", String.valueOf((int) (result[i] & 0xff)));
-            //      }
-            //  } catch(java.io.UnsupportedEncodingException ex) {
-            //      Log.d("DDL", "Some problem1");
-
+            
         } catch (java.util.zip.DataFormatException ex) {
             // handle
             Log.d("DDL", "Some problem2");
