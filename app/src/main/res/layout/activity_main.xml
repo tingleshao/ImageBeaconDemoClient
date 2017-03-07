@@ -19,7 +19,8 @@
         android:id="@+id/testButton"
         android:layout_below="@+id/scanButton"
         android:layout_alignEnd="@+id/scanButton"
-        android:layout_alignStart="@+id/scanButton" />
+        android:layout_alignStart="@+id/scanButton"
+        android:visibility="invisible" />
 
     <Button
         android:text="Scan Gray"
@@ -50,4 +51,21 @@
         android:layout_marginLeft="128dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <Button
+        android:text="Reset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/testButton"
+        android:layout_alignStart="@+id/scanButtonColor"
+        android:id="@+id/resetButton"
+        android:layout_alignEnd="@+id/scanButtonColor" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="72dp"
+        android:id="@+id/progress" />
 </RelativeLayout>

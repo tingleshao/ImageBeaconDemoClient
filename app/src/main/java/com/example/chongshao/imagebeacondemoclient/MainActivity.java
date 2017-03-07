@@ -21,6 +21,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements BluetoothAdapter.LeScanCallback {
@@ -68,6 +70,10 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private boolean doneGettingData;
     private int maxSize;
     private boolean decodeColor;
+    private int packetCount;
+
+    private TextView progress;
+
     ImageView imageView;
 
     @Override
@@ -163,8 +169,47 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         doneGettingData = false;
         maxSize = 0;
 
+        progress = (TextView)this.findViewById(R.id.progress);
+        packetCount = 0;
+
         init();
     }
+
+    public int maxInMat(Mat mat, int w, int h) {
+        int max = 0;
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                if (mat.get(j, i)[0] > max) {
+                    max = (int)mat.get(j, i)[0];
+                }
+            }
+        }
+        return max;
+    }
+    public int minInMat(Mat mat, int w, int h) {
+        int min = 255;
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                if (mat.get(j, i)[0] < min) {
+                    min = (int)mat.get(j, i)[0];
+                }
+            }
+        }
+        return min;
+    }
+
+
+    public Mat enhance(Mat mat, int max, int w, int h) {
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                if (mat.get(j, i)[0] > max) {
+                    mat.put(j, i, (int)(mat.get(j,i)[0] * 255.0 / max));
+                }
+            }
+        }
+        return mat;
+    }
+
 
     public Mat imageFromDCTMat(Mat dctMat, int w, int h) {
         Mat img2 = new Mat();
@@ -174,7 +219,13 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             // img = 255 * img;
             Scalar alpha = new Scalar(255); // the factor
             Core.multiply(img, alpha, img);
+            int maxValue = maxInMat(img, w, h);
+            int minValue = minInMat(img, w, h);
+            Scalar minS = new Scalar(-1 * minValue);
+            Core.add(img, minS, img);
+           // img = enhance(img, maxValue, w, h);
             Log.d("DDL", "img1" + img.dump());
+
             //  img *= 255;
             img.convertTo(img2, CvType.CV_8UC1);
         } else {
@@ -185,14 +236,27 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             List<Mat> lRgb = new ArrayList<Mat>(3);
             Core.split(dctMat, lRgb);
             Core.idct(lRgb.get(0), imgr);
-            Core.idct(lRgb.get(0), imgg);
-            Core.idct(lRgb.get(0), imgb);
+            Core.idct(lRgb.get(1), imgg);
+            Core.idct(lRgb.get(2), imgb);
 
             // img = 255 * img;
             Scalar alpha = new Scalar(255); // the factor
             Core.multiply(imgr, alpha, imgr);
             Core.multiply(imgg, alpha, imgg);
             Core.multiply(imgb, alpha, imgb);
+
+            int minValuer = minInMat(imgr, w, h);
+            int minValueg = minInMat(imgg, w, h);
+            int minValueb = minInMat(imgb, w, h);
+
+            Scalar minSr = new Scalar(-1 * minValuer);
+            Core.add(imgr, minSr, imgr);
+
+            Scalar minSg = new Scalar(-1 * minValueg);
+            Core.add(imgg, minSg, imgg);
+
+            Scalar minSb = new Scalar(-1 * minValueb);
+            Core.add(imgb, minSb, imgb);
 
             Log.d("DDL", "img1r" + imgr.dump());
             //  img *= 255;
@@ -203,9 +267,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             imgr.convertTo(imgr2, CvType.CV_8UC1);
             imgg.convertTo(imgg2, CvType.CV_8UC1);
             imgb.convertTo(imgb2, CvType.CV_8UC1);
-            lRgb.set(0, imgr2);
+            lRgb.set(0, imgb2);
             lRgb.set(1, imgg2);
-            lRgb.set(2, imgb2);
+            lRgb.set(2, imgr2);
             Core.merge(lRgb, img2);
         }
         return img2;
@@ -288,6 +352,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     }
 
     private void stopScan() {
+        packetCount = 0;
+        progress.setText("");
         if (mBTAdapter != null) {
             mBTAdapter.stopLeScan(this);
         }
@@ -307,26 +373,35 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 //        });
         if (rssi > -60 && device.getName() == null) {
             String scanRecordString = ByteArrayToString(scanRecord);
-            Log.d("Ddl:", scanRecordString + Integer.toString(rssi) + "name:" +device.getName());
+            if (scanRecordString.substring(19,21).equals("1a") && scanRecordString.substring(16, 18).equals("1a")) {
+            Log.d("Ddl", scanRecordString + Integer.toString(rssi) + "name:" +device.getName());
             retrieveByteArray(scanRecordString.split(" = ")[1]);
-            if (doneGettingData) {
-                String resultString = getInputStringFromHashMap();
-                Log.d("ddl", "done getting data: " + resultString);
-                Mat resultDCTMap = decodeByteArray(resultString);
-                Log.d("DDL", "res: " + resultDCTMap.dump());
+               if (doneGettingData) {
+                   String resultString = getInputStringFromHashMap();
+                   Log.d("ddl", "done getting data: " + resultString);
+                   Mat resultDCTMap = decodeByteArray(resultString);
+                   Log.d("DDL", "res: " + resultDCTMap.dump());
 
-                Mat img = imageFromDCTMat(resultDCTMap, 64, 64);
-                Log.d("DDL", "bitmap:" + img.dump());
-                Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
-                Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
-                Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC3));
-
-                Utils.matToBitmap(img, bmp);
-                imageView.setImageBitmap(bmp);
+                   Mat img = imageFromDCTMat(resultDCTMap, 64, 64);
+                   Log.d("DDL", "bitmap:" + img.dump());
+                   Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+                   Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
+                   Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC3));
+                   Utils.matToBitmap(img, bmp);
+                   imageView.setImageBitmap(bmp);
+                   stopScan();
+                   reset();
+                }
             }
         }
     }
 
+    private void reset() {
+        doneGettingData = false;
+        progress.setText("");
+        packetCount = 0;
+        inputData = new HashMap<>();
+    }
     public static String ByteArrayToString(byte[] ba)
     {
 //        StringBuilder hex = new StringBuilder(ba.length * 2);
@@ -374,6 +449,14 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         if (inputData.containsKey(new Integer(currIndex))) {
             if (containsAll()) {
                 doneGettingData = true;
+            }
+        } else {
+            packetCount = packetCount + 1;
+            if (!decodeColor) {
+                progress.setText(String.format("%d%%", (int)((double)packetCount * 100.0 / 18)));
+            }
+            else {
+                progress.setText(String.format("%d%%", (int)((double)packetCount * 100.0 / 52)));
             }
         }
         inputData.put(new Integer(currIndex), byteArray.substring(30,90));
