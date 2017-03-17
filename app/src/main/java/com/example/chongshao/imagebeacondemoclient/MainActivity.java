@@ -545,7 +545,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             decompresser.setInput(input);
             int resultLength = decompresser.inflate(result);
             decompresser.end();
-            
+
         } catch (java.util.zip.DataFormatException ex) {
             // handle
             Log.d("DDL", "Some problem2");
