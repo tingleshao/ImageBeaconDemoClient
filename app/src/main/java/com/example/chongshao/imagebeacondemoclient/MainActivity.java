@@ -20,36 +20,23 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 public class MainActivity extends AppCompatActivity implements BluetoothAdapter.LeScanCallback {
 
@@ -214,30 +201,25 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         if (!decodeColor) {
             Mat img = new Mat(w, h, CvType.CV_8UC1);
             Core.idct(dctMat, img);
-            // img = 255 * img;
             Scalar alpha = new Scalar(255); // the factor
             Core.multiply(img, alpha, img);
             int maxValue = maxInMat(img, w, h);
             int minValue = minInMat(img, w, h);
             Scalar minS = new Scalar(-1 * minValue);
             Core.add(img, minS, img);
-           // img = enhance(img, maxValue, w, h);
             Log.d("DDL", "img1" + img.dump());
-
-            //  img *= 255;
             img.convertTo(img2, CvType.CV_8UC1);
         } else {
             Mat imgr = new Mat(w, h, CvType.CV_8UC1);
             Mat imgg = new Mat(w, h, CvType.CV_8UC1);
             Mat imgb = new Mat(w, h, CvType.CV_8UC1);
 
-            List<Mat> lRgb = new ArrayList<Mat>(3);
+            List<Mat> lRgb = new ArrayList<>(3);
             Core.split(dctMat, lRgb);
             Core.idct(lRgb.get(0), imgr);
             Core.idct(lRgb.get(1), imgg);
             Core.idct(lRgb.get(2), imgb);
 
-            // img = 255 * img;
             Scalar alpha = new Scalar(255); // the factor
             Core.multiply(imgr, alpha, imgr);
             Core.multiply(imgg, alpha, imgg);
@@ -257,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             Core.add(imgb, minSb, imgb);
 
             Log.d("DDL", "img1r" + imgr.dump());
-            //  img *= 255;
             Mat imgr2 = new Mat();
             Mat imgg2 = new Mat();
             Mat imgb2 = new Mat();

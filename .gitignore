@@ -10,3 +10,10 @@ openCVLibrary320/*
 /build
 /captures
 .externalNativeBuild
+app/src/main/jniLibs/*
+app/src/main/res/drawable/*
+app/src/main/res/mipmap*
+app/src/main/res/raw/* 
+app/src/main/res/values*
+*.jar
+gradlew
