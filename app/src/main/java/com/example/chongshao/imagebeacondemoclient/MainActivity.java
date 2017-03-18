@@ -114,8 +114,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         setContentView(R.layout.activity_main);
 
         imageView = (ImageView)this.findViewById(R.id.imageView);
-
-        //imageView.setImageResource(R.drawable.images);
         String csvText = this.readFromCSV("foo");
         Mat m = this.csvTextToMat(csvText, 64, 64);
         Mat img = this.imageFromDCTMat(m, 64, 64);
