@@ -2,12 +2,11 @@ package com.example.chongshao.imagebeacondemoclient;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanSettings;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -62,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private TextView progress;
 
     ImageView imageView;
+
+    private MyScanCallBack callBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
         progress = (TextView)this.findViewById(R.id.progress);
         packetCount = 0;
+
+
+        callBack = new MyScanCallBack();
 
         init();
     }
@@ -312,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         BluetoothManager manager = BleUtil.getManager(this);
         if (manager != null) {
             mBTAdapter = manager.getAdapter();
+
         }
         if (mBTAdapter == null) {
          //   Toast.makeText(this, R.string.bt_unavailable, Toast.LENGTH_SHORT).show();
@@ -323,7 +328,12 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
     private void startScan() {
         if ((mBTAdapter != null) && (!mIsScanning)) {
-            mBTAdapter.startLeScan(this);
+            ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(0).build();
+
+            mBTAdapter.getBluetoothLeScanner().startScan(null, settings, callBack);
+
+//            mBTAdapter.startLeScan(this);
+
             mIsScanning = true;
             setProgressBarIndeterminateVisibility(true);
             invalidateOptionsMenu();
