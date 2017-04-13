@@ -3,10 +3,13 @@ package com.example.chongshao.imagebeacondemoclient;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.zip.Inflater;
 
 import android.bluetooth.BluetoothAdapter;
@@ -62,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
     ImageView imageView;
 
-    private MyScanCallBack callBack;
+    private ScanCallback callBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,7 +163,33 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         packetCount = 0;
 
 
-        callBack = new MyScanCallBack();
+        callBack = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                if (callbackType != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+                    // Should not happen.
+                    Log.e("DDL", "LE Scan has already started");
+                    return;
+                }
+                ScanRecord scanRecord = result.getScanRecord();
+                if (scanRecord == null) {
+                    return;
+                }
+                if (serviceUuids != null) {
+                    List<ParcelUuid> uuids = new ArrayList<ParcelUuid>();
+                    for (UUID uuid : serviceUuids) {
+                        uuids.add(new ParcelUuid(uuid));
+                    }
+                    List<ParcelUuid> scanServiceUuids = scanRecord.getServiceUuids();
+                    if (scanServiceUuids == null || !scanServiceUuids.containsAll(uuids)) {
+                        if (DBG) Log.d(TAG, "uuids does not match");
+                        return;
+                    }
+                }
+                onLeScan(result.getDevice(), result.getRssi(),
+                        scanRecord.getBytes());
+            }
+        };;
 
         init();
     }
@@ -344,7 +374,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         packetCount = 0;
         progress.setText("");
         if (mBTAdapter != null) {
-            mBTAdapter.stopLeScan(this);
+        //    mBTAdapter.stopLeScan(this);
+            mBTAdapter.getBluetoothLeScanner().stopScan(callBack);
         }
         mIsScanning = false;
         setProgressBarIndeterminateVisibility(false);
