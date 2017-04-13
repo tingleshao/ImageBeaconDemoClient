@@ -175,21 +175,21 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
                 if (scanRecord == null) {
                     return;
                 }
-                if (serviceUuids != null) {
-                    List<ParcelUuid> uuids = new ArrayList<ParcelUuid>();
-                    for (UUID uuid : serviceUuids) {
-                        uuids.add(new ParcelUuid(uuid));
-                    }
-                    List<ParcelUuid> scanServiceUuids = scanRecord.getServiceUuids();
-                    if (scanServiceUuids == null || !scanServiceUuids.containsAll(uuids)) {
-                        if (DBG) Log.d(TAG, "uuids does not match");
-                        return;
-                    }
-                }
+//                if (serviceUuids != null) {
+//                    List<ParcelUuid> uuids = new ArrayList<ParcelUuid>();
+//                    for (UUID uuid : serviceUuids) {
+//                        uuids.add(new ParcelUuid(uuid));
+//                    }
+//                    List<ParcelUuid> scanServiceUuids = scanRecord.getServiceUuids();
+//                    if (scanServiceUuids == null || !scanServiceUuids.containsAll(uuids)) {
+//                        if (DBG) Log.d("DDL", "uuids does not match");
+//                        return;
+//                    }
+//                }
                 onLeScan(result.getDevice(), result.getRssi(),
                         scanRecord.getBytes());
             }
-        };;
+        };
 
         init();
     }
