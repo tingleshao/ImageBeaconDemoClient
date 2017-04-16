@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         init();
     }
 
+
     public int maxInMat(Mat mat, int w, int h) {
         int max = 0;
         for (int i = 0; i < w; i++) {
@@ -204,6 +205,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         }
         return max;
     }
+
+
     public int minInMat(Mat mat, int w, int h) {
         int min = 255;
         for (int i = 0; i < w; i++) {
