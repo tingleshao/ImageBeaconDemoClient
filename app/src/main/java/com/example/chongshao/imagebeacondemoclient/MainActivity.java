@@ -422,12 +422,12 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             retrieveByteArray(scanRecordString.split(" = ")[1]);
                if (doneGettingData) {
                    String resultString = getInputStringFromHashMap();
-                   Log.d("ddl", "done getting data: " + resultString);
-                   Mat resultDCTMap = decodeByteArray(resultString);
-                   Log.d("DDL", "res: " + resultDCTMap.dump());
 
                    Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
                    if (!decodeTri) {
+                       Mat resultDCTMap = decodeByteArray(resultString);
+                       Log.d("ddl", "done getting data: " + resultString);
+                       Log.d("DDL", "res: " + resultDCTMap.dump());
                        Mat img = imageFromDCTMat(resultDCTMap, 64, 64);
                        Log.d("DDL", "bitmap:" + img.dump());
                        Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
@@ -435,6 +435,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
                        Utils.matToBitmap(img, bmp);
                    } else {
                        // decode triangle
+                       this.decodeByteArrayTri("");
                        Canvas canvas = new Canvas(bmp);
                        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
                        paint.setColor(Color.BLACK);
@@ -452,6 +453,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
 
             if (decodeTri) {
                 // decode triangle
+                this.decodeByteArrayTri("");
                 Canvas canvas = new Canvas(bmp);
                 Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         //        paint.setColor(Color.YELLOW);
@@ -665,5 +667,75 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             }
         }
         return res;
+    }
+
+    public void decodeByteArrayTri(String inputString) {
+        byte[] result;
+        if (!decodeColor) {
+            if (!decodeTri) {
+                result = new byte[4096];
+            }
+            else {
+                result = new byte[20000];
+            }
+        }  else {
+            result = new byte[4096*3];
+        }
+
+        try {
+            // Encode a String into bytes
+            String inputString2 = "120 156 29 143 75 72 35 105 16 199 51 30 212 211 44 116 28 21 100 218 139 7 7 103 80 176 157 72 100 78 163 68 54 72 2 185 121 204 121 12 4 137 105 77 108 230 123 245 51 239 24 77 171 189 39 25 5 131 56 136 179 24 208 13 132 8 171 140 135 192 98 98 64 4 211 62 147 131 12 226 30 183 123 161 248 81 223 191 234 171 127 85 133 47 131 127 208 142 144 5 101 208 158 248 13 188 133 19 153 81 248 217 224 103 232 6 47 218 175 88 123 194 167 133 82 97 213 167 77 100 220 192 167 185 65 40 197 125 243 105 97 245 124 187 194 255 138 157 111 255 138 189 104 133 220 142 80 6 133 92 25 84 248 66 174 194 159 111 203 187 59 66 33 39 239 130 100 22 200 187 89 176 35 8 251 240 187 188 139 242 240 187 176 31 60 244 105 220 55 120 132 242 194 126 163 120 190 253 162 181 22 27 69 147 47 90 123 130 41 181 22 77 182 39 222 66 166 100 238 196 148 38 50 62 141 41 249 180 224 225 214 49 60 18 246 183 142 133 125 121 119 235 88 222 45 228 54 79 224 223 240 200 224 209 214 113 219 105 163 216 90 92 252 25 60 12 253 69 87 219 78 91 139 116 181 181 200 148 186 47 218 78 233 106 253 178 144 59 223 174 95 158 111 55 138 245 203 70 177 237 84 191 174 95 154 108 59 237 190 168 233 245 75 253 186 166 111 158 108 29 215 244 173 227 66 174 166 23 114 245 75 231 13 83 10 30 58 111 130 135 139 63 247 238 55 79 106 186 253 129 174 50 37 251 3 83 114 222 12 60 210 85 251 67 79 83 191 238 190 232 105 118 95 208 213 158 38 93 29 120 220 120 194 77 120 181 241 4 175 54 79 54 158 54 79 246 238 203 207 123 247 53 189 252 92 211 245 235 51 203 198 211 222 253 153 197 84 3 22 231 205 226 191 42 133 155 27 79 42 181 241 116 102 161 172 250 117 79 147 178 158 89 202 207 148 181 252 172 95 83 214 158 230 192 35 233 192 77 149 2 111 224 21 110 130 55 184 73 58 166 59 237 15 206 155 233 78 231 77 192 50 76 219 31 166 59 135 105 202 58 240 56 76 15 60 218 31 198 251 135 233 233 206 192 224 120 191 201 233 78 182 47 48 200 246 133 222 5 6 67 239 194 31 230 134 2 131 225 15 189 12 101 29 166 123 153 97 122 188 159 251 56 55 20 254 112 59 106 110 208 24 187 29 165 172 175 63 53 198 76 82 214 94 198 239 152 27 226 62 250 29 227 253 129 65 191 35 48 56 55 132 39 193 27 210 145 118 226 73 147 164 67 165 108 174 94 102 188 223 230 26 239 247 59 186 220 141 177 215 159 186 220 175 63 245 50 93 238 94 198 230 194 30 60 153 118 30 120 210 78 149 58 240 168 212 153 229 192 115 102 185 29 93 244 248 29 220 199 188 215 172 85 188 121 175 201 3 207 237 104 197 123 59 218 24 91 248 226 119 44 122 192 12 54 254 129 153 180 51 239 5 51 198 245 147 134 50 137 61 45 179 21 111 99 172 101 182 49 214 229 238 11 182 204 154 236 114 219 92 119 108 197 219 50 251 158 237 11 218 92 35 236 123 214 230 154 154 95 248 178 48 51 53 63 242 127 110 115 249 29 83 243 126 199 194 23 75 232 142 109 153 173 135 43 222 59 246 7 7 102 242 222 31 92 222 251 231 226 43 174 30 190 99 95 113 119 172 37 100 231 70 216 169 121 59 247 158 29 97 127 231 236 220 212 188 196 203 34 175 36 37 146 138 242 201 40 175 66 62 25 51 19 35 82 49 126 21 203 89 40 202 130 18 21 149 229 175 130 64 120 89 16 68 34 68 36 222 136 84 156 87 68 162 25 109 17 252 71 82 80 163 120 25 162 12 128 105 197 152 70 36 30 75 60 81 120 44 18 44 243 88 139 225 68 4 175 167 228 213 40 90 75 201 50 33 235 153 200 90 20 175 242 100 45 34 106 9 162 98 188 30 33 24 194 12 132 113 9 165 21 188 26 129 105 9 170 9 222 232 95 77 74 217 184 32 97 20 35 40 139 17 65 32 107 216 9 152 71 48 41 34 25 65 195 122 61 45 173 64 180 18 35 171 73 81 64 144 199 208 168 18 8 150 16 204 96 148 18 193 82 4 39 69 16 33 32 46 162 184 130 227 138 65 180 164 128 101 195 81 49 199 174 68 209 50 129 70 103 92 70 17 104 210 152 28 33 208 224 18 134 9 8 151 191 194 36 129 105 4 5 12 227 4 165 13 5 161 152 132 34 24 169 146 176 130 144 17 10 15 141 43 8 132 50 134 4 65 67 49 220 151 16 74 243 112 9 162 180 177 9 66 34 1 9 0 99 16 138 24 100 16 90 198 216 232 148 8 206 96 108 60 21 130 82 24 73 60 250 15 115 68 120 46 ";
+            String[] inputStirngArray = inputString2.split(" ");
+            byte[] input = new byte[inputStirngArray.length];
+            for (int i = 0; i < inputStirngArray.length; i++) {
+         //       Log.d("DDL", "curr byte: " + inputStirngArray[i] + " len " + inputStirngArray[i].length());
+                input[i] = (byte) ((int) Integer.valueOf(inputStirngArray[i]));
+
+            }
+
+            Log.d("ddl", "length" + String.valueOf(input.length));
+
+            // Decompress the bytes
+            Inflater decompresser = new Inflater();
+            decompresser.setInput(input);
+            int resultLength = decompresser.inflate(result);
+            decompresser.end();
+
+        } catch (java.util.zip.DataFormatException ex) {
+            // handle
+            Log.d("DDL", "Some problem2");
+        }
+        Log.d("LLD", "decode tri called");
+      //  Mat res;
+
+      //  int n = (int)result[0];
+        String res = "";
+        int n = 210;
+        for (int i = 1; i < n*3*2+n*3 + 1 ; i ++) {
+         //   if (result[i] < 127) {
+                res = res + String.valueOf(result[i]) + " ";
+        //    }
+     //       else {
+      //          res = res + String.valueOf(result[i]+ 256) + " ";
+       //     }
+        }
+        Log.d("LLD", "decode result: " + res);
+//        if (!decodeColor) {
+//            res = new Mat(64, 64, CvType.CV_64FC1);
+//            for (int i = 0; i < 64; i++) {
+//                for (int j = 0; j < 64; j++) {
+//                    res.put(i, j, Float.valueOf((result[i * 64 + j])) / 10.0);
+//                }
+//            }
+//        }
+//        else {
+//            res = new Mat(64, 64, CvType.CV_64FC3);
+//            for (int i = 0; i < 64; i++) {
+//                for (int j = 0; j < 64; j++) {
+//                    res.put(i, j, new double[]{Float.valueOf((result[i * 64 + j])) / 10.0, Float.valueOf((result[4096 + (i * 64 + j)])) / 10.0, Float.valueOf((result[(4096 * 2) + (i * 64 + j)])) / 10.0});
+//                }
+//            }
+//        }
+//  return res;
     }
 }
