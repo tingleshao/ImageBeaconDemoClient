@@ -9,6 +9,11 @@ import android.bluetooth.le.ScanSettings;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,11 +59,13 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
     private Button scanButton;
     private Button testButton;
     private Button scanButtonColor;
+    private Button scanButtonTri;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private HashMap<Integer, String> inputData;
     private boolean doneGettingData;
     private int maxSize;
     private boolean decodeColor;
+    private boolean decodeTri;
     private int packetCount;
 
     private TextView progress;
@@ -114,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
         imageView.setImageBitmap(bmp);
 
         decodeColor = false;
+        decodeTri = false;
 
         scanButton = (Button)this.findViewById(R.id.scanButton);
         scanButton.setOnClickListener( new View.OnClickListener() {
@@ -121,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             public void onClick(View v) {
                 Log.d("DDL", "scan button clicked");
                 decodeColor = false;
+                decodeTri = false;
                 startScan();
             }
         });
@@ -131,6 +140,19 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
             public void onClick(View v) {
                 Log.d("DDL", "color scan button clicked!");
                 decodeColor = true;
+                decodeTri = false;
+                startScan();
+            }
+        });
+
+        scanButtonTri = (Button)this.findViewById(R.id.scanButtonTri);
+        scanButtonTri.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("DDL", "tri scan button clicked");
+                decodeColor = false;
+                decodeTri = true;
+                doneGettingData = true;
                 startScan();
             }
         });
@@ -404,18 +426,70 @@ public class MainActivity extends AppCompatActivity implements BluetoothAdapter.
                    Mat resultDCTMap = decodeByteArray(resultString);
                    Log.d("DDL", "res: " + resultDCTMap.dump());
 
-                   Mat img = imageFromDCTMat(resultDCTMap, 64, 64);
-                   Log.d("DDL", "bitmap:" + img.dump());
                    Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
-                   Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
-                   Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC3));
-                   Utils.matToBitmap(img, bmp);
+                   if (!decodeTri) {
+                       Mat img = imageFromDCTMat(resultDCTMap, 64, 64);
+                       Log.d("DDL", "bitmap:" + img.dump());
+                       Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC1));
+                       Log.d("DDL", Boolean.toString(img.type() == CvType.CV_8UC3));
+                       Utils.matToBitmap(img, bmp);
+                   } else {
+                       // decode triangle
+                       Canvas canvas = new Canvas(bmp);
+                       Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                       paint.setColor(Color.BLACK);
+                       canvas.drawCircle(5, 5, 10, paint);
+                   }
                    imageView.setImageBitmap(bmp);
                    stopScan();
                    reset();
                 }
             }
         }
+
+        if (doneGettingData) {
+            Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+
+            if (decodeTri) {
+                // decode triangle
+                Canvas canvas = new Canvas(bmp);
+                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        //        paint.setColor(Color.YELLOW);
+         //       canvas.drawCircle(5, 5, 10, paint);
+                this.drawMesh(canvas, paint);
+            }
+            imageView.setImageBitmap(bmp);
+            stopScan();
+            reset();
+        }
+    }
+
+    private void drawMesh(Canvas canvas, Paint paint) {
+
+        paint.setStrokeWidth(2);
+        paint.setColor(android.graphics.Color.RED);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setAntiAlias(true);
+
+        Point point1_draw = new Point(5, 5);
+        Point point2_draw = new Point(5, 45);
+        Point point3_draw = new Point(40,30);
+
+     //   mapView.getProjection().toPixels(point1, point1_draw);
+        //  mapView.getProjection().toPixels(point2, point2_draw);
+     //   mapView.getProjection().toPixels(point3, point3_draw);
+
+        Path path = new Path();
+        path.setFillType(Path.FillType.EVEN_ODD);
+        path.moveTo(point1_draw.x,point1_draw.y);
+        path.lineTo(point2_draw.x,point2_draw.y);
+        path.lineTo(point3_draw.x,point3_draw.y);
+        path.lineTo(point1_draw.x,point1_draw.y);
+        path.close();
+
+        canvas.drawPath(path, paint);
+
+//canvas.drawLine(point1_draw.x,point1_draw.y,point2_draw.x,point2_draw.y, paint);
     }
 
     private void reset() {
